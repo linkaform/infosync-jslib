@@ -30,6 +30,57 @@ function urlParamstoJson() {
 	return query_string;
 };
 
+function setValuesCatalog(data = [], key = null){
+	let selectId = document.getElementById(key);
+	if(selectId){
+		data.forEach(element => {
+		    let newOption = document.createElement('option');
+		    newOption.value = element.key;
+		    newOption.textContent = element.key;
+		    selectId.appendChild(newOption);
+		});
+	}
+}
+
+function getCatalogRequest(id = null, catalogKey= null, formId = null ){
+	let urlLinkaform = 'https://app.linkaform.com/api/infosync/catalog/view/';
+	if(id != null && id != '' && formId != null && formId != ''){
+		fetch(urlLinkaform, {
+			method: 'POST',
+			body: JSON.stringify({
+				catalog_id: Number(id),
+				form_id: Number(formId),
+				is_edition: false,
+				options: {'endkey':[],'group_level':1,'startkey':[]},
+				parent_catalog_id:null
+			}),
+			headers:{
+				'Content-Type': 'application/json',
+			},
+		})
+		.then(res => res.json())
+		.then(res => {
+			if (res.rows) {
+				setValuesCatalog(res.rows, catalogKey)
+			}   
+		})
+	}
+}
+
+function setCatalog(){
+	const formId = document.getElementById('infosyncFormID').value;
+	const elementsCatalog = document.querySelectorAll('.list-catalogs-input');
+	const elementsArray = Array.from(elementsCatalog);
+	if(elementsArray.length > 0 ){
+		elementsArray.forEach(element => {
+			let catalogValues = element.value;
+			let values = catalogValues.split('|');
+			let [catalogId, catalogKey] = values;
+			getCatalogRequest(catalogId, catalogKey, formId)
+		});
+	}
+}
+
 /* Infosync */
 window.infosync = (function() {
 	function Infosync() {
@@ -390,4 +441,7 @@ window.onload = function(){
 			}
 		}
 	}
+
+	/*Catalog if exist*/
+	setCatalog();
 };
